@@ -1,0 +1,9 @@
+1. Normalize features of the dataset and ensure every feature is comparable in scale to every other feature
+2. Computer measure of spread of the entire dataset with the average distance between nodes
+3. Define density radius r0 based on the spread of the dataset (large r0 for widely spread data, smaller r0 for tightly clustered data); average distance * an alpha value (0.2 for now, can be changed)
+4. For each instance xi in dataset X:
+    look at the neighborhood around the data point in the radius of r0 and count how many points fall inside that neighborhood, that's the density value for that point
+5. Select the point with highest density as the first centroid
+6. Until k centroids are picked:
+    Choose the next centroid by calculating the distance of every node to its closest centroid, select the node with the highest density * distance^2 value (k-means++ implementation)
+7. Record those centroids and use them in Scikit's K-Means algorithm
