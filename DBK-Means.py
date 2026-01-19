@@ -10,34 +10,22 @@ import time
 
 starttime = time.time()
 plotNum=0
-trainingData = pd.read_csv("skewedData.csv")
-labels2 = trainingData['label']
-trainingData = trainingData.drop(columns=['label'])
-trainingData = trainingData.values
-k=10
+
 
 def dbkMeans(input, k):
-    print('here!', time.time()-starttime)
-    input, scaler = normalizeFeatures(input)
-
     r0 = calculateR0(input)
-    #might be a problem?
     distMatrix = cdist(input, input, metric = "euclidean")
     localDensities = np.maximum(calculateLocalDensity(input, distMatrix, r0), 1e-10)
     selectedCentroidsIxs = selectCentroids(localDensities, distMatrix, k)
     selectedCentroidsPos = [list(input[ix]) for ix in selectedCentroidsIxs]
     selectedCentroidsPos = np.array(selectedCentroidsPos, dtype=np.float64)
-    plot(input, selectedCentroidsPos, labels2, k)
-    print('here!2', time.time()-starttime)
-
+    plot(input, selectedCentroidsPos, np.array([0 for i in range(len(input))], dtype=int),1)
 
     kmeans = KMeans(n_clusters = k, init=selectedCentroidsPos, n_init=1)
     kmeans.fit(input)
-    print('here!3', time.time()-starttime)
 
     centroids= kmeans.cluster_centers_
     labels = kmeans.labels_
-    print("Final centroids:", centroids)
     plot(input, centroids, labels, k)
     
 def selectCentroids(localDensities, distMatrix, k): #density-based k-means++
@@ -66,18 +54,56 @@ def normalizeFeatures(input): #scikit-learn z-score normalization; (x - mean)/st
     sl = StandardScaler()
     return sl.fit_transform(input), sl
 
+def normalKMeans(input, k):
+    initialCntrds = np.array([input[i] for i in range(k)]) 
+    plot(input, initialCntrds, np.array([0 for i in range(len(input))], dtype=int), k)
+    kmeans = KMeans(n_clusters = k, init= initialCntrds, n_init=1)
+    kmeans.fit(input)
+    plot(input, kmeans.cluster_centers_, kmeans.labels_, k)
+
+def kMeansPP(input, k):
+    initialKMeansPP = KMeans(n_clusters=k, init='k-means++', n_init=1, max_iter=1, random_state=0)
+    initialKMeansPP.fit(input)
+    initialKMPP = initialKMeansPP.cluster_centers_
+    plot(input, initialKMPP, np.array([0 for i in range(len(input))], dtype=int), k)
+    fullKMeansPP = KMeans(n_clusters=k, init='k-means++', random_state=0, n_init='auto')
+    fullKMeansPP.fit(input)
+    plot(input, fullKMeansPP.cluster_centers_, fullKMeansPP.labels_, k)
+
 def plot(input, centroids, labels, k): #make a pretty looking plot
     global plotNum
-    print(type(centroids))
     plt.figure(figsize=(10, 6))
     for i in range(k):
         cluster_points = input[labels == i]
         plt.scatter(cluster_points[:, 0], cluster_points[:, 1], label=f"Cluster {i}", alpha=0.7, s=50)
     plt.scatter(centroids[:, 0], centroids[:, 1], color="black", marker="X", s=200, label="Centroid", linewidths=2)
-    plt.xlabel("Attribute 1"); plt.ylabel("Attribute 2"); plt.title(f"Clustering Results")
-    plt.legend(); plt.grid(True, alpha=0.3); plt.tight_layout(); plt.savefig(f"dbkPlot{plotNum}.png")
+    plt.xlabel("Attribute 1")
+    plt.ylabel("Attribute 2")
+    plt.title(f"Clustering Results: {["DBK-Means Initial Centroids", "DBK-Means Final Clusters", "K-Means Initial Centroids", "K-Means Final Centroids", "K-Means++ Initial Centroids", "K-Means Final Centroids"][plotNum]}")
+    plt.legend(loc="lower right")
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.savefig(f"dbkPlot{plotNum}.png")
     plotNum+=1
 
-dbkMeans(trainingData, k)
+def main(k):
+    trainingData = pd.read_csv("skewedData.csv")
+    trainingData = trainingData.drop(columns=["label"])
+    trainingData = trainingData.values
+    trainingData = normalizeFeatures(trainingData)[0]
+    print(f"DBKMeans commencing; {round(time.time()-starttime, 3)}s elapsed")
+    dbkMeans(trainingData, k)
+    print(f"DBKMeans finished; {round(time.time()-starttime, 3)}s elapsed")
+    print(f"KMeans commencing; {round(time.time()-starttime, 3)}s elapsed")
+    normalKMeans(trainingData, k)
+    print(f"KMeans finished; {round(time.time()-starttime, 3)}s elapsed")
+    print(f"KMeans++ commencing; {round(time.time()-starttime, 3)}s elapsed")
+    kMeansPP(trainingData, k)
+    print(f"KMeans++ finished; {round(time.time()-starttime, 3)}s elapsed")
+
+
+
+
+main(10)
 
 
