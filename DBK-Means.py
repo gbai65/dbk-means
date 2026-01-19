@@ -88,7 +88,7 @@ def plot(inputs, centroids, labels, k): #make a pretty looking plot
     plt.scatter(centroids[:, 0], centroids[:, 1], color="black", marker="X", s=200, label="Centroid", linewidths=2)
     plt.xlabel("Attribute 1")
     plt.ylabel("Attribute 2")
-    plt.title(f"Clustering Results: {['DBK-Means Initial Centroids', 'DBK-Means Final Clusters', 'K-Means Initial Centroids', 'K-Means Final Centroids', 'K-Means++ Initial Centroids', 'K-Means Final Centroids'][plotNum]}")
+    plt.title(f"Clustering Results: {['DBK-Means Initial Centroids', 'DBK-Means Final Clusters', 'K-Means Initial Centroids', 'K-Means Final Centroids', 'K-Means++ Initial Centroids', 'K-Means++ Final Centroids'][plotNum]}")
     plt.legend(loc="lower right")
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
@@ -180,8 +180,7 @@ def main():
 
         numSamples = random.randint(100, 500)
         k = random.randint(3, 10)
-        if numSamples<400 or k<7: PLOT=False #only nice looking samples
-        else: PLOT = True
+        if iter>10: PLOT=False
         with open(f"{DIR}info", "a") as file:
             file.write(f"N: {numSamples}, k: {k}")
         makeBlobs(numSamples, k)
