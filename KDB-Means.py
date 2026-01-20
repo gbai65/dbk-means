@@ -14,7 +14,7 @@ from sklearn.neighbors import NearestNeighbors
 
 starttime = time.time()
 plotNum= 0; silPlotNum = 0; iter=0
-PLOT = True; DIR=''; DATASETTYPE = 'real'
+PLOT = False; DIR=''; DATASETTYPE = 'real'
 
 def KDBMeans(inputs, k):
     r0 = calculateR0(inputs)
@@ -71,11 +71,12 @@ def normalKMeans(inputs, k):
     return kMeans
 
 def kMeansPP(inputs, k):
-    initialKMeansPP = KMeans(n_clusters=k, init='k-means++', n_init=1, max_iter=1, random_state=0) #set a random seed so the initial centroids are actually the initial centroids
+    randomSeed = random.randint(0, 100)
+    initialKMeansPP = KMeans(n_clusters=k, init='k-means++', n_init=1, max_iter=1, random_state=randomSeed) #set a random seed so the initial centroids are actually the initial centroids
     initialKMeansPP.fit(inputs)
     initialKMPP = initialKMeansPP.cluster_centers_
     if PLOT: plot(inputs, initialKMPP, np.array([0 for i in range(len(inputs))], dtype=int), 1)
-    fullKMeansPP = KMeans(n_clusters=k, init='k-means++', random_state=0, n_init='auto') #same random seed
+    fullKMeansPP = KMeans(n_clusters=k, init='k-means++', random_state=randomSeed, n_init='auto') #same random seed
     fullKMeansPP.fit(inputs)
     clusters = fullKMeansPP.cluster_centers_; labels = fullKMeansPP.labels_
     if PLOT: plot(inputs, clusters, labels, k)
